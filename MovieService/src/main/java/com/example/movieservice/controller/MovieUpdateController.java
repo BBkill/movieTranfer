@@ -3,6 +3,7 @@ package com.example.movieservice.controller;
 import com.example.movieservice.dto.request.MovieUpdateReqDto;
 import com.example.movieservice.dto.response.MovieUpdateResDto;
 import com.example.movieservice.service.MovieUpdateService;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +22,14 @@ public class MovieUpdateController {
         this.service = service;
     }
 
-    @PostMapping
-    public ResponseEntity<MovieUpdateResDto> updateNewMovie(@RequestParam("file") MultipartFile file,
-                                                            @RequestBody @Valid MovieUpdateReqDto reqDto) {
-        return ResponseEntity.ok(service.upLoadMovie(file, reqDto));
+    @PostMapping("/upload")
+    public String uploadNewMovie(@RequestParam("file") MultipartFile file) {
+        return service.upLoadMovie(file);
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<MovieUpdateResDto> updateNewMovie(@RequestBody MovieUpdateReqDto reqDto) {
+        return ResponseEntity.ok(service.insertMovie(reqDto));
     }
 
 }

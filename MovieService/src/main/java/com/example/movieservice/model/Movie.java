@@ -17,7 +17,7 @@ import java.util.Set;
 public class Movie {
 
     @Id
-    private Long id;
+    private String id;
     private String name;
     private int age;
     private String director;

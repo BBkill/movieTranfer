@@ -6,6 +6,7 @@ import com.example.movieservice.model.Info;
 import com.example.movieservice.model.Movie;
 import com.example.movieservice.repository.MovieRepo;
 import com.example.movieservice.service.MovieUpdateService;
+import com.google.common.cache.LoadingCache;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,22 +22,25 @@ import java.util.stream.Collectors;
 @Log4j2
 @Service
 public class MovieUpdateServiceIml implements MovieUpdateService {
-    @Value("${config.path}")
-    private static String path;
-    @Value("${config.des}")
-    private static String des;
+
+    private static final String path = "E:\\dtsGroup\\movie\\MovieService\\src\\main\\java\\com\\example\\movieservice\\container";
+    private static final String des = "\\download";
 
     private final MovieRepo movieRepo;
     private final ModelMapper modelMapper;
+    private final LoadingCache<String, String> movieCache;
 
     @Autowired
-    public MovieUpdateServiceIml(MovieRepo movieRepo, ModelMapper modelMapper) {
+    public MovieUpdateServiceIml(MovieRepo movieRepo,
+                                 ModelMapper modelMapper,
+                                 LoadingCache<String, String> movieCache) {
         this.movieRepo = movieRepo;
         this.modelMapper = modelMapper;
+        this.movieCache =movieCache;
     }
 
     @Override
-    public MovieUpdateResDto upLoadMovie(MultipartFile file, MovieUpdateReqDto reqDto)  {
+    public String upLoadMovie(MultipartFile file)  {
         byte[] buffer = new byte[1024*1024];
         int byteRead = 0;
         int segment = 0;
@@ -69,17 +73,28 @@ public class MovieUpdateServiceIml implements MovieUpdateService {
             inputStream.close();
             bufferedInputStream.close();
             outputStream.close();
+            movieCache.put("originName", Objects.requireNonNull(file.getOriginalFilename()));
+            movieCache.put("link", movieLink);
+        } catch (IOException e){
+            log.info(e.getMessage());
+        }
 
-            Date date = new Date();
-            Info info = Info.builder()
-                    .createdAt(date)
-                    .createdBy(null) //TODO: convert access token and take user_id
-                    .updatedAt(date)
-                    .updatedBy(null)
-                    .build();
+        return "SUCCESS";
+    }
 
+    @Override
+    public MovieUpdateResDto insertMovie(MovieUpdateReqDto reqDto) {
+        Date date = new Date();
+        Info info = Info.builder()
+                .createdAt(date)
+                .createdBy(null) //TODO: convert access token and take user_id
+                .updatedAt(date)
+                .updatedBy(null)
+                .build();
+
+        try{
             Movie movie = Movie.builder()
-                    .name(file.getOriginalFilename())
+                    .name(movieCache.get("originName"))
                     .age(reqDto.getAge())
                     .director(reqDto.getDirector())
                     .country(reqDto.getCountry())
@@ -87,18 +102,20 @@ public class MovieUpdateServiceIml implements MovieUpdateService {
                     .length(reqDto.getLength())
                     .actors(Arrays.stream(reqDto.getActors()).collect(Collectors.toSet()))
                     .categories(Arrays.stream(reqDto.getCategories()).collect(Collectors.toSet()))
-                    .movieLink(movieLink)
+                    .movieLink(movieCache.get("link"))
                     .posterLink(null)
                     .comments(null)
                     .reactions(null)
                     .view(0)
                     .info(info)
                     .build();
-            movieRepo.save(movie);
-        } catch (IOException e){
-            log.info(e.getMessage());
+
+            return modelMapper.map(movieRepo.save(movie), MovieUpdateResDto.class);
+        } catch (Exception e) {
+            log.error(e.getMessage());
         }
-        return modelMapper.map(reqDto, MovieUpdateResDto.class);
+
+        return null;
     }
 
     private void downloadFile(String base64, OutputStream outputStream) {
