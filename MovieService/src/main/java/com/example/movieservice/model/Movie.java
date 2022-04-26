@@ -1,9 +1,6 @@
 package com.example.movieservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.persistence.Id;
@@ -16,21 +13,22 @@ import java.util.Set;
 @Getter
 @Setter
 @Document(collection = "movie")
+@Builder
 public class Movie {
 
     @Id
     private Long id;
     private String name;
     private int age;
-    private Set<Actor> actors;
     private String director;
     private String country;
     private float rate;
     private Date releaseDate;
     private String description;
     private long length;
-    private String movie; //link
-    private String poster; //link
+    private String movieLink; //link
+    private String posterLink; //link
+    private Set<Actor> actors;
     private Set<Category> categories;
     private List<Comment> comments;
     private Set<Reaction> reactions;
