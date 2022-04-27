@@ -16,7 +16,7 @@ import javax.persistence.Id;
 public class Reaction {
 
     @Id
-    private Long id;
+    private String id;
     private String type;
     private Long movieId;
     private Long userId;

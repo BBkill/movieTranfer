@@ -16,7 +16,7 @@ import javax.persistence.Id;
 public class View {
 
     @Id
-    private Long id;
+    private String id;
     private Long movieId;
     private Long count;
     private Info info;

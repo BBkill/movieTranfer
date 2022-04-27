@@ -16,6 +16,6 @@ import javax.persistence.Id;
 public class Actor {
 
     @Id
-    private Long id;
+    private String id;
     private String name;
 }
